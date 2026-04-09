@@ -22,7 +22,7 @@ def get_stock_data(tickers: list, period: str = "5y") -> tuple:
             prog.progress((i + 1) / len(tickers))
             try:
                 stock = yf.Ticker(ticker)
-                hist = stock.history(period=period)
+                hist = stock.history(period=period, timeout=10)
                 if hasattr(hist.index, 'tz_localize'):
                     hist.index = hist.index.tz_localize(None)
                 if len(hist) > 50:
@@ -38,7 +38,8 @@ def get_stock_data(tickers: list, period: str = "5y") -> tuple:
         st.info(f"Laster {len(tickers)} aksjer...")
         try:
             df_all = yf.download(
-                tickers, period=period, group_by='ticker', threads=True, progress=True
+                tickers, period=period, group_by='ticker', threads=True, progress=True,
+                timeout=10,
             )
             if df_all.empty:
                 return data, infos

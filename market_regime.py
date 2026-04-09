@@ -10,7 +10,7 @@ def get_market_regime() -> tuple:
     Returns (regime_name, description, color_hex).
     """
     try:
-        spy = yf.Ticker("SPY").history(period="6mo")
+        spy = yf.Ticker("SPY").history(period="6mo", timeout=10)
         if hasattr(spy.index, 'tz_localize'):
             spy.index = spy.index.tz_localize(None)
 
@@ -28,7 +28,7 @@ def get_market_regime() -> tuple:
 
         vix_level = 20.0
         try:
-            vix = yf.Ticker("^VIX").history(period="1mo")
+            vix = yf.Ticker("^VIX").history(period="1mo", timeout=10)
             if len(vix) > 0:
                 vix_level = vix['Close'].iloc[-1]
         except Exception:
