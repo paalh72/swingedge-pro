@@ -25,6 +25,11 @@ from sector_tracker import (
     render_shipping_panel,
 )
 from newsweb import render_newsweb
+from commodity_monitor import (
+    render_commodity_panel,
+    render_psychology_panel,
+    detect_slow_price_in,
+)
 
 # --- CONFIG ---
 st.set_page_config(page_title="SwingEdge Pro v2.0", layout="wide")
@@ -76,11 +81,13 @@ st.markdown(
 )
 
 # --- FANER ---
-tab_wold, tab_scan, tab_sektorer, tab_nyheter, tab_backtest = st.tabs([
+tab_wold, tab_scan, tab_sektorer, tab_raavarer, tab_nyheter, tab_psykologi, tab_backtest = st.tabs([
     "⚡ Wold-modus",
     "🔬 Teknisk Scan",
     "🗺️ Sektorer & Shipping",
+    "🛢️ Råvarer & Rotasjon",
     "📰 Newsweb",
+    "🧠 Psykologi",
     "📊 Backtest",
 ])
 
@@ -181,6 +188,7 @@ if start_scan:
                     portfolio_value, risk_per_trade, last["Close"], sl_price
                 )
                 sektor = TICKER_TO_SECTOR.get(ticker, "Annet")
+                slow_pi = detect_slow_price_in(df, ticker)
                 wold_results.append({
                     "Ticker": ticker,
                     "Navn": infos.get(ticker, {}).get("shortName", ticker),
@@ -191,12 +199,14 @@ if start_scan:
                     "5d %": round((last["Close"] / df["Close"].iloc[-6] - 1) * 100, 1) if len(df) > 6 else 0,
                     "Momentum-streak": momentum_cont["streak"],
                     "Trigger-nær": "⚡ " + trigger_prox["type"] if trigger_prox["near_trigger"] else "—",
+                    "Slow price-in": "🐢 Ja" if slow_pi["signal"] else "—",
                     "Pris": round(last["Close"], 2),
                     "Stop Loss": round(sl_price, 2),
                     "Take Profit": round(tp_price, 2),
                     "Antall": shares,
                     "Wold-signaler": ", ".join(wold_reasons[:3]),
                     "_df": df,
+                    "_slow_pi_desc": slow_pi["description"],
                 })
 
             # ---- TEKNISK CONFLUENCE SCORE ----
@@ -315,8 +325,8 @@ with tab_wold:
 
         wold_display_cols = [
             "Ticker", "Sektor", "Wold Score", "RVOL", "1d %", "5d %",
-            "Momentum-streak", "Trigger-nær", "Pris", "Stop Loss",
-            "Take Profit", "Antall", "Wold-signaler",
+            "Momentum-streak", "Trigger-nær", "Slow price-in",
+            "Pris", "Stop Loss", "Take Profit", "Antall", "Wold-signaler",
         ]
 
         wold_event = st.dataframe(
@@ -490,6 +500,7 @@ with tab_scan:
 # FANE 3 — SEKTORER & SHIPPING
 # ===========================================================================
 with tab_sektorer:
+
     st.markdown("## 🗺️ Sektorrotasjon & Shippingrater")
 
     render_shipping_panel()
@@ -522,7 +533,35 @@ with tab_sektorer:
 
 
 # ===========================================================================
-# FANE 4 — NEWSWEB
+# FANE 4 — RÅVARER & ROTASJON
+# ===========================================================================
+with tab_raavarer:
+    st.markdown("## 🛢️ Råvarer, Kapitalrotasjon & Overnight-risiko")
+    render_commodity_panel()
+
+    st.markdown("---")
+    st.markdown("#### Slow price-in — kandidater fra siste scan")
+    st.caption(
+        "Wold: *'Kongsberg Gruppen gikk ikke samme dag. Det tok tid. "
+        "Selv om mange tror alt er priset inn med en gang, er det ikke alltid slik.'*"
+    )
+    wold_res = st.session_state.get("wold_results")
+    if wold_res is not None and not wold_res.empty and "Slow price-in" in wold_res.columns:
+        slow_pi_res = wold_res[wold_res["Slow price-in"] == "🐢 Ja"]
+        if not slow_pi_res.empty:
+            st.success(f"**{len(slow_pi_res)} kandidater med mulig slow price-in signal:**")
+            for _, r in slow_pi_res.iterrows():
+                st.markdown(
+                    f"**{r['Ticker']}** — {r['_slow_pi_desc']}"
+                )
+        else:
+            st.info("Ingen slow price-in kandidater i dette scannet.")
+    else:
+        st.info("Kjør en scan for å se slow price-in kandidater.")
+
+
+# ===========================================================================
+# FANE 5 — NEWSWEB
 # ===========================================================================
 with tab_nyheter:
     result_tickers = []
@@ -551,7 +590,15 @@ estimater justeres opp, og folk våkner litt etter litt.
 
 
 # ===========================================================================
-# FANE 5 — BACKTEST
+# FANE 6 — PSYKOLOGI & DISIPLIN
+# ===========================================================================
+with tab_psykologi:
+    st.markdown("## 🧠 Psykologi & Handelsdisiplin")
+    render_psychology_panel()
+
+
+# ===========================================================================
+# FANE 7 — BACKTEST
 # ===========================================================================
 with tab_backtest:
     st.markdown("## 📊 Backtest — Historisk hitrate")

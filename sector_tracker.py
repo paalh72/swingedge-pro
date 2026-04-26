@@ -136,7 +136,40 @@ def compute_sector_momentum(data: dict) -> pd.DataFrame:
         return pd.DataFrame()
 
     df_out = pd.DataFrame(rows).sort_values("Heatmap Score", ascending=False)
+
+    # --- SEKTOR-TRETTHET ---
+    # Wold: "Oljeselskapene responderer ikke på samme måte lenger. De virker litt slitne."
+    # Signal: 5d momentum MINKENDE vs 20d momentum = sektoren mister damp
+    df_out["Tretthet"] = df_out.apply(_classify_exhaustion, axis=1)
+
     return df_out
+
+
+def _classify_exhaustion(row) -> str:
+    """
+    Klassifiser om en sektor viser tegn til tretthet/utmattelse.
+
+    Logikk: Hvis 5d-momentum er signifikant svakere enn 20d-momentum,
+    tyder det på at sektoren mister damp — selv om 20d-trenden ser bra ut.
+    """
+    mom5 = row.get("Mom 5d %", 0) or 0
+    mom20 = row.get("Mom 20d %", 0) or 0
+    vol_ratio = row.get("Vol-ratio", 1.0) or 1.0
+
+    # Momentum fading: 5d er mye svakere enn 20d
+    momentum_fading = mom20 > 5 and mom5 < mom20 * 0.3
+
+    # Volum tørker inn (interessenter trekker seg)
+    volume_drying = vol_ratio < 0.8
+
+    if momentum_fading and volume_drying:
+        return "🔴 Utmattet"
+    elif momentum_fading:
+        return "🟡 Taper damp"
+    elif mom5 > 3 and vol_ratio > 1.3:
+        return "🟢 Frisk"
+    else:
+        return "⚪ Nøytral"
 
 
 # ---------------------------------------------------------------------------
