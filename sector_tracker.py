@@ -211,10 +211,11 @@ def render_sector_heatmap(sector_df: pd.DataFrame):
                 return "color: #cc0000; font-weight: bold"
         return ""
 
+    # pandas >= 2.1 bruker .map() i stedet for det utdaterte .applymap()
     styled = (
         sector_df.style
-        .applymap(color_heatmap, subset=["Heatmap Score"])
-        .applymap(color_mom, subset=["Mom 5d %", "Mom 20d %"])
+        .map(color_heatmap, subset=["Heatmap Score"])
+        .map(color_mom, subset=["Mom 5d %", "Mom 20d %"])
         .format({
             "Mom 5d %": "{:+.1f}%",
             "Mom 20d %": "{:+.1f}%",

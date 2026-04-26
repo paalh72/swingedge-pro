@@ -28,7 +28,8 @@ COMMODITIES = {
     "Brent Crude (olje)": {"symbol": "BZ=F", "unit": "USD/fat", "emoji": "🛢️", "sectors": ["Olje & Energi"]},
     "Natural Gas (Henry Hub)": {"symbol": "NG=F", "unit": "USD/MMBtu", "emoji": "🔥", "sectors": ["Olje & Energi"]},
     "Baltic Dry Index": {"symbol": "^BDI", "unit": "poeng", "emoji": "⚓", "sectors": ["Shipping"]},
-    "OSEBX (Oslo Børs)": {"symbol": "^OSEBX", "unit": "indeks", "emoji": "🇳🇴", "sectors": ["Alle"]},
+    # Bruker Equinor (EQNR.OL) som Oslo Børs-proxy siden ^OSEBX/^OSEAX er ustabilt på Yahoo
+    "Oslo Børs (EQNR proxy)": {"symbol": "EQNR.OL", "unit": "NOK", "emoji": "🇳🇴", "sectors": ["Alle"]},
     "QQQ (US Tech)": {"symbol": "QQQ", "unit": "USD", "emoji": "💻", "sectors": ["Rotasjon"]},
     "VIX (fryktindeks)": {"symbol": "^VIX", "unit": "poeng", "emoji": "😱", "sectors": ["Risiko"]},
 }
@@ -76,7 +77,7 @@ def compute_rotation_signal(commodity_data: dict) -> dict:
     Returnerer rotasjonssignal med anbefaling.
     """
     qqq = commodity_data.get("QQQ (US Tech)", {})
-    osebx = commodity_data.get("OSEBX (Oslo Børs)", {})
+    osebx = commodity_data.get("Oslo Børs (EQNR proxy)", {})
 
     qqq_5d = qqq.get("chg5d") or 0
     osebx_5d = osebx.get("chg5d") or 0
@@ -325,7 +326,7 @@ def render_commodity_panel():
     # --- Mini chart: QQQ vs OSEBX ---
     with st.expander("Graf: QQQ vs Oslo Børs (siste 3 mnd)", expanded=False):
         qqq_hist = data.get("QQQ (US Tech)", {}).get("hist")
-        osebx_hist = data.get("OSEBX (Oslo Børs)", {}).get("hist")
+        osebx_hist = data.get("Oslo Børs (EQNR proxy)", {}).get("hist")
 
         if qqq_hist is not None and osebx_hist is not None:
             # Normaliser til 100

@@ -324,9 +324,11 @@ with tab_wold:
         }
 
         wold_display_cols = [
-            "Ticker", "Sektor", "Wold Score", "RVOL", "1d %", "5d %",
-            "Momentum-streak", "Trigger-nær", "Slow price-in",
-            "Pris", "Stop Loss", "Take Profit", "Antall", "Wold-signaler",
+            c for c in [
+                "Ticker", "Sektor", "Wold Score", "RVOL", "1d %", "5d %",
+                "Momentum-streak", "Trigger-nær", "Slow price-in",
+                "Pris", "Stop Loss", "Take Profit", "Antall", "Wold-signaler",
+            ] if c in wold_res.columns
         ]
 
         wold_event = st.dataframe(
