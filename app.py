@@ -30,6 +30,7 @@ from commodity_monitor import (
     render_psychology_panel,
     detect_slow_price_in,
 )
+from screener import render_screener_tab
 
 # --- CONFIG ---
 st.set_page_config(page_title="SwingEdge Pro v2.0", layout="wide")
@@ -81,7 +82,7 @@ st.markdown(
 )
 
 # --- FANER ---
-tab_wold, tab_scan, tab_sektorer, tab_raavarer, tab_nyheter, tab_psykologi, tab_backtest = st.tabs([
+tab_wold, tab_scan, tab_sektorer, tab_raavarer, tab_nyheter, tab_psykologi, tab_backtest, tab_screener = st.tabs([
     "⚡ Wold-modus",
     "🔬 Teknisk Scan",
     "🗺️ Sektorer & Shipping",
@@ -89,6 +90,7 @@ tab_wold, tab_scan, tab_sektorer, tab_raavarer, tab_nyheter, tab_psykologi, tab_
     "📰 Newsweb",
     "🧠 Psykologi",
     "📊 Backtest",
+    "💼 70/30 Screener",
 ])
 
 # ---------------------------------------------------------------------------
@@ -635,3 +637,10 @@ with tab_backtest:
         with st.expander("Alle trades"):
             if bt.get("trades_df") is not None:
                 st.dataframe(bt["trades_df"], use_container_width=True)
+
+
+# ===========================================================================
+# FANE 8 — 70/30 SCREENER
+# ===========================================================================
+with tab_screener:
+    render_screener_tab()
