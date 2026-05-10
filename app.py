@@ -31,6 +31,7 @@ from commodity_monitor import (
     detect_slow_price_in,
 )
 from screener import render_screener_tab
+from quarter_dressing import render_quarter_dressing_tab
 
 # --- CONFIG ---
 st.set_page_config(page_title="SwingEdge Pro v2.0", layout="wide")
@@ -82,7 +83,7 @@ st.markdown(
 )
 
 # --- FANER ---
-tab_wold, tab_scan, tab_sektorer, tab_raavarer, tab_nyheter, tab_psykologi, tab_backtest, tab_screener = st.tabs([
+tab_wold, tab_scan, tab_sektorer, tab_raavarer, tab_nyheter, tab_psykologi, tab_backtest, tab_screener, tab_quarter = st.tabs([
     "⚡ Wold-modus",
     "🔬 Teknisk Scan",
     "🗺️ Sektorer & Shipping",
@@ -91,6 +92,7 @@ tab_wold, tab_scan, tab_sektorer, tab_raavarer, tab_nyheter, tab_psykologi, tab_
     "🧠 Psykologi",
     "📊 Backtest",
     "💼 70/30 Screener",
+    "🎯 Kvartalsslutt",
 ])
 
 # ---------------------------------------------------------------------------
@@ -644,3 +646,10 @@ with tab_backtest:
 # ===========================================================================
 with tab_screener:
     render_screener_tab()
+
+
+# ===========================================================================
+# FANE 9 — KVARTALSSLUTT WINDOW DRESSING
+# ===========================================================================
+with tab_quarter:
+    render_quarter_dressing_tab()
