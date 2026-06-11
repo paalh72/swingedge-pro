@@ -4,6 +4,7 @@ import pandas as pd
 MARKET_OPTIONS = {
     "Min Watchlist": None,
     "Oslo Bors": "oslo",
+    "Oslo Bors (ALLE ~300)": "oslo_all",
     "USA (Nasdaq 100)": "nasdaq",
     "USA (S&P 500)": "sp500",
     "USA (Alle Aksjer)": "us_all",
@@ -21,6 +22,7 @@ def get_tickers_for_market(market_name: str) -> list:
         return []
     fetchers = {
         "oslo": get_oslo_tickers,
+        "oslo_all": get_oslo_all_tickers,
         "nasdaq": get_nasdaq_tickers,
         "sp500": get_sp500_tickers,
         "us_all": get_all_us_tickers,
@@ -66,6 +68,41 @@ def get_all_us_tickers():
         return [str(t) for t in tickers if isinstance(t, str) and "^" not in t]
     except Exception:
         return ["AAPL", "MSFT", "TSLA", "NVDA"]
+
+
+@st.cache_data(ttl=24 * 3600)
+def get_oslo_all_tickers(include_growth: bool = True) -> list:
+    """Hent ALLE aksjer notert på Oslo Børs fra Euronext (~300 stk).
+
+    Inkluderer Oslo Børs hovedliste, Euronext Expand og (valgfritt)
+    Euronext Growth. Faller tilbake til den hardkodede listen ved feil.
+    """
+    import io
+    import requests
+
+    url = (
+        "https://live.euronext.com/en/pd_es/data/stocks/download"
+        "?mics=XOSL%2CXOAS%2CMERK&initialLetter=&fe_type=csv&fe_decorator="
+    )
+    try:
+        resp = requests.get(
+            url, timeout=30, headers={"User-Agent": "Mozilla/5.0"}
+        )
+        resp.raise_for_status()
+        df = pd.read_csv(
+            io.StringIO(resp.content.decode("utf-8-sig")),
+            sep=";", skiprows=[1, 2, 3],
+        )
+        df = df.dropna(subset=["Symbol", "Market"])
+        if not include_growth:
+            df = df[~df["Market"].str.contains("Growth", na=False)]
+        symbols = df["Symbol"].astype(str).str.strip().str.upper()
+        tickers = [f"{s}.OL" for s in symbols if s and s.isalnum()]
+        if len(tickers) > 100:
+            return sorted(set(tickers))
+    except Exception:
+        pass
+    return get_oslo_tickers()
 
 
 def get_oslo_tickers():

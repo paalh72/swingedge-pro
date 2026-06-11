@@ -32,6 +32,7 @@ from commodity_monitor import (
 )
 from screener import render_screener_tab
 from quarter_dressing import render_quarter_dressing_tab
+from bottom_finder import render_bottom_finder_tab
 
 # --- CONFIG ---
 st.set_page_config(page_title="SwingEdge Pro v2.0", layout="wide")
@@ -83,9 +84,10 @@ st.markdown(
 )
 
 # --- FANER ---
-tab_wold, tab_scan, tab_sektorer, tab_raavarer, tab_nyheter, tab_psykologi, tab_backtest, tab_screener, tab_quarter = st.tabs([
+tab_wold, tab_scan, tab_bunn, tab_sektorer, tab_raavarer, tab_nyheter, tab_psykologi, tab_backtest, tab_screener, tab_quarter = st.tabs([
     "⚡ Wold-modus",
     "🔬 Teknisk Scan",
+    "🎣 Bunnfisker",
     "🗺️ Sektorer & Shipping",
     "🛢️ Råvarer & Rotasjon",
     "📰 Newsweb",
@@ -653,3 +655,10 @@ with tab_screener:
 # ===========================================================================
 with tab_quarter:
     render_quarter_dressing_tab()
+
+
+# ===========================================================================
+# FANE 10 — BUNNFISKER
+# ===========================================================================
+with tab_bunn:
+    render_bottom_finder_tab(portfolio_value=portfolio_value, risk_pct=risk_per_trade)
