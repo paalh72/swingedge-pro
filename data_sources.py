@@ -71,11 +71,10 @@ def get_all_us_tickers():
 
 
 @st.cache_data(ttl=24 * 3600)
-def get_oslo_all_tickers(include_growth: bool = True) -> list:
-    """Hent ALLE aksjer notert på Oslo Børs fra Euronext (~300 stk).
+def _fetch_euronext_oslo() -> pd.DataFrame | None:
+    """Rå selskapsliste for Oslo Børs fra Euronext (navn, symbol, markedsplass).
 
-    Inkluderer Oslo Børs hovedliste, Euronext Expand og (valgfritt)
-    Euronext Growth. Faller tilbake til den hardkodede listen ved feil.
+    Returnerer None ved feil, slik at kallerne kan falle tilbake.
     """
     import io
     import requests
@@ -85,24 +84,40 @@ def get_oslo_all_tickers(include_growth: bool = True) -> list:
         "?mics=XOSL%2CXOAS%2CMERK&initialLetter=&fe_type=csv&fe_decorator="
     )
     try:
-        resp = requests.get(
-            url, timeout=30, headers={"User-Agent": "Mozilla/5.0"}
-        )
+        resp = requests.get(url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
         resp.raise_for_status()
         df = pd.read_csv(
             io.StringIO(resp.content.decode("utf-8-sig")),
             sep=";", skiprows=[1, 2, 3],
         )
         df = df.dropna(subset=["Symbol", "Market"])
-        if not include_growth:
-            df = df[~df["Market"].str.contains("Growth", na=False)]
-        symbols = df["Symbol"].astype(str).str.strip().str.upper()
-        tickers = [f"{s}.OL" for s in symbols if s and s.isalnum()]
-        if len(tickers) > 100:
-            return sorted(set(tickers))
+        df["Ticker"] = df["Symbol"].astype(str).str.strip().str.upper() + ".OL"
+        df = df[df["Symbol"].astype(str).str.strip().str.isalnum()]
+        return df if len(df) > 100 else None
     except Exception:
-        pass
-    return get_oslo_tickers()
+        return None
+
+
+def get_oslo_all_tickers(include_growth: bool = True) -> list:
+    """Hent ALLE aksjer notert på Oslo Børs fra Euronext (~300 stk).
+
+    Inkluderer Oslo Børs hovedliste, Euronext Expand og (valgfritt)
+    Euronext Growth. Faller tilbake til den hardkodede listen ved feil.
+    """
+    df = _fetch_euronext_oslo()
+    if df is None:
+        return get_oslo_tickers()
+    if not include_growth:
+        df = df[~df["Market"].str.contains("Growth", na=False)]
+    return sorted(set(df["Ticker"].tolist()))
+
+
+def get_oslo_name_map() -> dict:
+    """Ticker -> selskapsnavn for Oslo Børs. Tom dict hvis kilden er nede."""
+    df = _fetch_euronext_oslo()
+    if df is None:
+        return {}
+    return dict(zip(df["Ticker"], df["Name"].astype(str).str.strip()))
 
 
 def get_oslo_tickers():
