@@ -34,6 +34,7 @@ from screener import render_screener_tab
 from quarter_dressing import render_quarter_dressing_tab
 from bottom_finder import render_bottom_finder_tab
 from earnings_reaction import render_earnings_reaction_tab
+from bollinger_position import render_bollinger_tab
 
 # --- CONFIG ---
 st.set_page_config(page_title="SwingEdge Pro v2.0", layout="wide")
@@ -85,11 +86,13 @@ st.markdown(
 )
 
 # --- FANER ---
-(tab_wold, tab_scan, tab_bunn, tab_rapport, tab_sektorer, tab_raavarer,
- tab_nyheter, tab_psykologi, tab_backtest, tab_screener, tab_quarter) = st.tabs([
+(tab_wold, tab_scan, tab_bunn, tab_bollinger, tab_rapport, tab_sektorer,
+ tab_raavarer, tab_nyheter, tab_psykologi, tab_backtest, tab_screener,
+ tab_quarter) = st.tabs([
     "⚡ Wold-modus",
     "🔬 Teknisk Scan",
     "🎣 Bunnfisker",
+    "🎚️ Bollinger-posisjon",
     "📑 Rapportreaksjon",
     "🗺️ Sektorer & Shipping",
     "🛢️ Råvarer & Rotasjon",
@@ -672,3 +675,10 @@ with tab_bunn:
 # ===========================================================================
 with tab_rapport:
     render_earnings_reaction_tab()
+
+
+# ===========================================================================
+# FANE 12 — BOLLINGER-POSISJON
+# ===========================================================================
+with tab_bollinger:
+    render_bollinger_tab(portfolio_value=portfolio_value, risk_pct=risk_per_trade)
